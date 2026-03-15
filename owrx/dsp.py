@@ -586,13 +586,11 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod == "dab":
             from csdr.chain.dablin import Dablin
             from owrx.dab.manager import DabDecoderManager
+            sdr_id = self.sdrSource.getId()
+            center_freq = self.props["center_freq"]
             try:
-                shared = DabDecoderManager.getShared().acquire(
-                    self.sdrSource.getId(),
-                    self.props["center_freq"],
-                    self.sdrSource,
-                )
-                self._dabKey = (self.sdrSource.getId(), self.props["center_freq"])
+                shared = DabDecoderManager.getShared().acquire(sdr_id, center_freq, self.sdrSource)
+                self._dabKey = (sdr_id, center_freq)
                 return Dablin(shared_decoder=shared)
             except Exception:
                 logger.exception("Shared DAB decoder failed, falling back to standalone")
