@@ -596,6 +596,8 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
                 return Dablin(shared_decoder=shared)
             except Exception:
                 logger.exception("Shared DAB decoder failed, falling back to standalone")
+                # _dabKey is set only if acquire() succeeded but Dablin() raised;
+                # release it so the shared decoder refcount stays consistent.
                 if self._dabKey is not None:
                     DabDecoderManager.getShared().release(*self._dabKey)
                     self._dabKey = None
