@@ -596,7 +596,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
                 return Dablin(shared_decoder=shared)
             except Exception:
                 logger.exception("Shared DAB decoder failed, falling back to standalone")
-                self._dabKey = None
+                if self._dabKey is not None:
+                    DabDecoderManager.getShared().release(*self._dabKey)
+                    self._dabKey = None
                 return Dablin()
         elif demod == "empty":
             from csdr.chain.analog import Empty

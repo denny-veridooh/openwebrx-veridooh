@@ -155,6 +155,9 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
             self.processor.stop()
         else:
             self._meta_forwarder.stop()
+            if self._eti_reader is not None:
+                self._eti_reader.stop()
+                self._eti_reader = None
 
     def setMetaWriter(self, writer: Writer) -> None:
         if self._shared_decoder is None:
