@@ -71,6 +71,12 @@ class SharedDabDecoder:
         labels and service info to each client's meta WebSocket channel."""
         return self._meta_buffer.getReader()
 
+    def getCachedMeta(self):
+        """Return the last stable metadata snapshot captured by MetaProcessor.
+        Used by Dablin.setMetaWriter() to replay programme/ensemble data to
+        clients that connect after the initial FIC decode."""
+        return dict(self._processor.cached_output)
+
 
 class DabDecoderManager:
     """

@@ -21,6 +21,9 @@ class MetaProcessor(PickleModule):
         self.fine_increment = - (1/3) / 2048000
         # carrier spacing is 1kHz, don't drift further than that.
         self.max_shift = 1000 / 2048000
+        # Cache stable fields (programmes, ensemble_id/label) so they can be
+        # replayed to clients that connect after the initial FIC decode.
+        self.cached_output = {}
         super().__init__()
 
     def process(self, data):
@@ -41,6 +44,10 @@ class MetaProcessor(PickleModule):
         if not result:
             return
         result["mode"] = "DAB"
+        # Keep a snapshot of stable fields so late-connecting clients can get them
+        # immediately via setMetaWriter() injection. Exclude timestamp — it changes
+        # every second and the injected copy would be stale anyway.
+        self.cached_output = {k: v for k, v in result.items() if k != "timestamp"}
         return result
 
     def _nudgeShift(self, amount):
@@ -164,6 +171,13 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
             self.processor.setWriter(writer)
         else:
             self._meta_forwarder.setWriter(writer)
+            # Replay cached programme/ensemble metadata so the client sees the
+            # programme list immediately, without waiting for EtiDecoder to
+            # re-emit FIC data (which only happens once at initial decode).
+            cached = self._shared_decoder.getCachedMeta()
+            if cached:
+                import pickle
+                writer.write(pickle.dumps(cached))
 
     def setDabServiceId(self, serviceId: int) -> None:
         if self._shared_decoder is None:
