@@ -44,10 +44,12 @@ class MetaProcessor(PickleModule):
         if not result:
             return
         result["mode"] = "DAB"
-        # Keep a snapshot of stable fields so late-connecting clients can get them
-        # immediately via setMetaWriter() injection. Exclude timestamp — it changes
-        # every second and the injected copy would be stale anyway.
-        self.cached_output = {k: v for k, v in result.items() if k != "timestamp"}
+        # Merge only stable fields (programmes, ensemble_label, etc.) into the cache.
+        # Do NOT replace the whole dict — freq-correction-only packets have no
+        # stable fields and would wipe out previously cached programme data.
+        stable = {k: v for k, v in result.items() if k not in ("timestamp", "mode")}
+        if stable:
+            self.cached_output.update(stable)
         return result
 
     def _nudgeShift(self, amount):
