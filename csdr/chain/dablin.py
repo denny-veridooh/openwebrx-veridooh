@@ -179,6 +179,7 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
             cached = self._shared_decoder.getCachedMeta()
             if cached:
                 import pickle
+                cached['mode'] = 'DAB'  # required: JS DabMetaPanel.isSupported() checks data.mode
                 writer.write(pickle.dumps(cached))
 
     def setDabServiceId(self, serviceId: int) -> None:
